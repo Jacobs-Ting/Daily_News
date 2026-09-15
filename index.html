@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>每日新聞｜AI・科技・財金</title>
+<style>
+  /* ========== 主題色票 ========== */
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #1a1d21;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --ai: #7c3aed;   --ai-soft: #ede9fe;
+    --tech: #0891b2; --tech-soft: #cffafe;
+    --fin: #d97706;  --fin-soft: #fef3c7;
+    --err: #dc2626;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115; --card: #181b21; --text: #e6e8eb; --muted: #9aa1ab;
+      --line: #262a31; --accent: #60a5fa; --accent-soft: #1e2a44;
+      --ai: #a78bfa; --ai-soft: #2a2240; --tech: #22d3ee; --tech-soft: #12303a;
+      --fin: #fbbf24; --fin-soft: #3a2f12; --shadow: none;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    line-height: 1.5;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ========== 頁首 ========== */
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--card); border-bottom: 1px solid var(--line);
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 16px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0 10px; }
+  h1 { font-size: 20px; margin: 0; letter-spacing: .5px; }
+  h1 small { display: block; font-size: 12px; color: var(--muted); font-weight: normal; margin-top: 2px; }
+  .actions { display: flex; gap: 8px; align-items: center; }
+  button {
+    border: 1px solid var(--line); background: var(--card); color: var(--text);
+    padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 13px;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button:disabled { opacity: .5; cursor: wait; }
+  .search {
+    border: 1px solid var(--line); background: var(--bg); color: var(--text);
+    padding: 7px 10px; border-radius: 8px; font-size: 13px; width: 160px;
+  }
+  .search:focus { outline: none; border-color: var(--accent); }
+
+  .tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 10px; }
+  .tab {
+    padding: 6px 14px; border-radius: 999px; font-size: 14px; cursor: pointer;
+    color: var(--muted); border: 1px solid transparent; white-space: nowrap;
+  }
+  .tab:hover { background: var(--bg); }
+  .tab.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .tab .n { font-size: 12px; opacity: .8; margin-left: 4px; }
+
+  /* ========== 內容 ========== */
+  main { padding: 20px 0 60px; }
+  .status { font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .status .err { color: var(--err); cursor: pointer; }
+
+  .day-title {
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    margin: 22px 0 10px; text-transform: uppercase; letter-spacing: .5px;
+  }
+  .day-title:first-child { margin-top: 0; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow);
+    display: block; transition: transform .12s, border-color .12s;
+  }
+  .card:hover { transform: translateY(-1px); border-color: var(--accent); }
+  .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-bottom: 6px; flex-wrap: wrap; }
+  .badge { padding: 2px 8px; border-radius: 999px; font-weight: 600; font-size: 11px; }
+  .badge.AI   { background: var(--ai-soft);   color: var(--ai); }
+  .badge.科技 { background: var(--tech-soft); color: var(--tech); }
+  .badge.財金 { background: var(--fin-soft);  color: var(--fin); }
+  .title { font-size: 16px; font-weight: 600; line-height: 1.4; margin: 0 0 4px; }
+  .desc {
+    font-size: 13.5px; color: var(--muted); margin: 0;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+
+  .empty { text-align: center; color: var(--muted); padding: 60px 0; }
+  .skeleton { height: 86px; border-radius: 12px; margin-bottom: 10px;
+    background: linear-gradient(90deg, var(--card) 25%, var(--line) 50%, var(--card) 75%);
+    background-size: 200% 100%; animation: sh 1.2s infinite; }
+  @keyframes sh { from { background-position: 200% 0 } to { background-position: -200% 0 } }
+
+  footer { text-align: center; font-size: 12px; color: var(--muted); padding: 20px 0; border-top: 1px solid var(--line); }
+
+  @media (max-width: 560px) {
+    .search { width: 110px; }
+    h1 { font-size: 18px; }
+    .title { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="topbar">
+      <h1>每日新聞<small id="dateLabel"></small></h1>
+      <div class="actions">
+        <input class="search" id="search" type="search" placeholder="搜尋標題…">
+        <button id="refreshBtn" title="重新抓取所有來源">↻ 更新</button>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs"></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="status">
+    <span id="statusText">載入中…</span>
+    <span id="errText"></span>
+  </div>
+  <div id="list"></div>
+</main>
+
+<footer>資料來源為各媒體公開 RSS，點擊卡片將前往原始網站。每日開啟即自動更新。</footer>
+
+<script>
+/* ==========================================================
+   設定區：想換新聞來源，改這裡就好
+   ========================================================== */
+const FEEDS = [
+  // ---- AI ----
+  { cat: "AI",   name: "OpenAI",          url: "https://openai.com/news/rss.xml" },
+  { cat: "AI",   name: "Google AI Blog",  url: "https://blog.google/technology/ai/rss/" },
+  { cat: "AI",   name: "MIT Tech Review", url: "https://www.technologyreview.com/topic/artificial-intelligence/feed" },
+  { cat: "AI",   name: "The Verge AI",    url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml" },
+  { cat: "AI",   name: "VentureBeat AI",  url: "https://venturebeat.com/category/ai/feed/" },
+  // ---- 科技 ----
+  { cat: "科技", name: "iThome",          url: "https://www.ithome.com.tw/rss" },
+  { cat: "科技", name: "科技新報",         url: "https://technews.tw/feed/" },
+  { cat: "科技", name: "TechCrunch",      url: "https://techcrunch.com/feed/" },
+  { cat: "科技", name: "Ars Technica",    url: "https://feeds.arstechnica.com/arstechnica/index" },
+  // ---- 財金 ----
+  { cat: "財金", name: "鉅亨網",           url: "https://news.cnyes.com/rss/v1/news/category/headline" },
+  { cat: "財金", name: "中央社財經",        url: "https://feeds.feedburner.com/rsscna/finance" },
+  { cat: "財金", name: "CNBC Business",   url: "https://www.cnbc.com/id/10001147/device/rss/rss.html" },
+  { cat: "財金", name: "MarketWatch",     url: "https://feeds.content.dowjones.io/public/rss/mw_topstories" },
+  { cat: "財金", name: "Yahoo Finance",   url: "https://finance.yahoo.com/news/rssindex" },
+];
+
+const CATEGORIES   = ["全部", "AI", "科技", "財金"];
+const MAX_PER_FEED = 15;          // 每個來源最多取幾篇
+const MAX_AGE_DAYS = 3;           // 只顯示最近幾天的新聞
+const CACHE_TTL_MS = 60 * 60e3;   // 快取 1 小時，避免重複抓取
+const CACHE_KEY    = "dailyNews.v1";
+
+/* ==========================================================
+   CORS 代理：瀏覽器無法直接讀取跨網域 RSS，依序嘗試以下服務
+   ========================================================== */
+const PROXIES = [
+  // 回傳 JSON（已解析）。注意：免費版不可帶 count 等額外參數，否則會回傳錯誤
+  { type: "json", build: u => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(u)}` },
+  // 回傳原始 XML（備援）
+  { type: "xml",  build: u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}` },
+];
+
+/* ==========================================================
+   抓取與解析
+   ========================================================== */
+async function fetchWithTimeout(url, ms = 12000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try { return await fetch(url, { signal: ctrl.signal }); }
+  finally { clearTimeout(t); }
+}
+
+// 輸出到頁面前跳脫，避免來源內容夾帶 HTML
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function stripHtml(html) {
+  const d = document.createElement("div");
+  d.innerHTML = html || "";
+  return (d.textContent || "").replace(/\s+/g, " ").trim();
+}
+
+// 解析 RSS 2.0 / Atom
+function parseXml(text) {
+  const doc = new DOMParser().parseFromString(text, "text/xml");
+  if (doc.querySelector("parsererror")) throw new Error("XML 解析失敗");
+  const items = [...doc.querySelectorAll("item, entry")];
+  return items.map(it => {
+    const q = s => it.querySelector(s)?.textContent?.trim() || "";
+    let link = q("link");
+    if (!link) link = it.querySelector("link")?.getAttribute("href") || "";
+    return {
+      title: q("title"),
+      link,
+      description: q("description") || q("summary") || q("content"),
+      pubDate: q("pubDate") || q("published") || q("updated") || q("dc\\:date"),
+    };
+  });
+}
+
+async function fetchFeed(feed) {
+  let lastErr;
+  for (const p of PROXIES) {
+    try {
+      const res = await fetchWithTimeout(p.build(feed.url));
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      let items;
+      if (p.type === "json") {
+        const data = await res.json();
+        if (data.status !== "ok") throw new Error(data.message || "rss2json 錯誤");
+        items = data.items;
+      } else {
+        items = parseXml(await res.text());
+      }
+      return items.slice(0, MAX_PER_FEED).map(it => ({
+        cat: feed.cat,
+        source: feed.name,
+        title: stripHtml(it.title),
+        link: it.link,
+        desc: stripHtml(it.description).slice(0, 200),
+        time: new Date(it.pubDate).getTime() || Date.now(),
+      })).filter(a => a.title && a.link);
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error("所有代理皆失敗");
+}
+
+async function loadAll(force = false) {
+  // 讀快取
+  if (!force) {
+    try {
+      const c = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+      if (c && Date.now() - c.at < CACHE_TTL_MS) return c;
+    } catch {}
+  }
+  const results = await Promise.allSettled(FEEDS.map(fetchFeed));
+  const articles = [], errors = [];
+  results.forEach((r, i) => {
+    if (r.status === "fulfilled") articles.push(...r.value);
+    else errors.push(`${FEEDS[i].name}：${r.reason?.message || "失敗"}`);
+  });
+  // 去重（同連結或同標題）
+  const seen = new Set();
+  const cutoff = Date.now() - MAX_AGE_DAYS * 86400e3;
+  const uniq = articles.filter(a => {
+    const k = a.link.replace(/[?#].*$/, "") || a.title;
+    if (seen.has(k) || seen.has(a.title)) return false;
+    seen.add(k); seen.add(a.title);
+    return a.time >= cutoff;
+  }).sort((a, b) => b.time - a.time);
+
+  const payload = { at: Date.now(), articles: uniq, errors };
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(payload)); } catch {}
+  return payload;
+}
+
+/* ==========================================================
+   畫面
+   ========================================================== */
+let state = { articles: [], errors: [], at: 0, cat: "全部", q: "" };
+
+const $ = id => document.getElementById(id);
+
+function fmtDay(ts) {
+  const d = new Date(ts), now = new Date();
+  const dayDiff = Math.floor((new Date(now.toDateString()) - new Date(d.toDateString())) / 86400e3);
+  const label = d.toLocaleDateString("zh-TW", { month: "long", day: "numeric", weekday: "short" });
+  return dayDiff === 0 ? `今天 · ${label}` : dayDiff === 1 ? `昨天 · ${label}` : label;
+}
+function fmtTime(ts) {
+  const diff = (Date.now() - ts) / 60e3;
+  if (diff < 60) return `${Math.max(1, Math.round(diff))} 分鐘前`;
+  if (diff < 1440) return `${Math.round(diff / 60)} 小時前`;
+  return new Date(ts).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" });
+}
+
+function renderTabs() {
+  $("tabs").innerHTML = CATEGORIES.map(c => {
+    const n = c === "全部" ? state.articles.length : state.articles.filter(a => a.cat === c).length;
+    return `<div class="tab ${c === state.cat ? "active" : ""}" data-cat="${c}">${c}<span class="n">${n}</span></div>`;
+  }).join("");
+}
+
+function renderList() {
+  const q = state.q.toLowerCase();
+  const items = state.articles.filter(a =>
+    (state.cat === "全部" || a.cat === state.cat) &&
+    (!q || a.title.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q))
+  );
+  if (!items.length) {
+    $("list").innerHTML = `<div class="empty">目前沒有符合的新聞</div>`;
+    return;
+  }
+  let html = "", lastDay = "";
+  for (const a of items) {
+    const day = new Date(a.time).toDateString();
+    if (day !== lastDay) { html += `<div class="day-title">${fmtDay(a.time)}</div>`; lastDay = day; }
+    html += `
+      <a class="card" href="${esc(a.link)}" target="_blank" rel="noopener">
+        <div class="meta">
+          <span class="badge ${a.cat}">${a.cat}</span>
+          <span>${esc(a.source)}</span><span>·</span><span>${fmtTime(a.time)}</span>
+        </div>
+        <p class="title">${esc(a.title)}</p>
+        ${a.desc ? `<p class="desc">${esc(a.desc)}</p>` : ""}
+      </a>`;
+  }
+  $("list").innerHTML = html;
+}
+
+function renderStatus() {
+  $("statusText").textContent = state.at
+    ? `共 ${state.articles.length} 篇 · 更新於 ${new Date(state.at).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })}`
+    : "";
+  const e = $("errText");
+  if (state.errors.length) {
+    e.innerHTML = `<span class="err" title="${esc(state.errors.join("\n"))}">⚠ ${state.errors.length} 個來源暫時無法讀取</span>`;
+  } else e.innerHTML = "";
+}
+
+async function refresh(force) {
+  $("refreshBtn").disabled = true;
+  $("statusText").textContent = "正在抓取新聞…";
+  if (!state.articles.length) $("list").innerHTML = '<div class="skeleton"></div>'.repeat(6);
+  try {
+    const data = await loadAll(force);
+    Object.assign(state, data);
+  } catch (e) {
+    $("statusText").textContent = "載入失敗：" + e.message;
+  }
+  renderTabs(); renderList(); renderStatus();
+  $("refreshBtn").disabled = false;
+}
+
+/* ========== 事件 ========== */
+$("tabs").addEventListener("click", e => {
+  const t = e.target.closest(".tab"); if (!t) return;
+  state.cat = t.dataset.cat; renderTabs(); renderList();
+});
+$("search").addEventListener("input", e => { state.q = e.target.value.trim(); renderList(); });
+$("refreshBtn").addEventListener("click", () => refresh(true));
+$("dateLabel").textContent = new Date().toLocaleDateString("zh-TW", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
+
+refresh(false);
+</script>
+</body>
+</html>
