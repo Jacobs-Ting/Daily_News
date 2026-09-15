@@ -140,20 +140,31 @@
 /* ==========================================================
    設定區：想換新聞來源，改這裡就好
    ========================================================== */
+// localTime: true 表示該來源的時間本身就是台灣時間（iThome 的 RSS 沒標時區，代理會誤標成 UTC）
 const FEEDS = [
   // ---- AI ----
+  { cat: "AI",   name: "iThome AI",       url: "https://www.ithome.com.tw/rss/ai", localTime: true },
+  { cat: "AI",   name: "科技新報 AI",      url: "https://technews.tw/category/ai/feed/" },
   { cat: "AI",   name: "OpenAI",          url: "https://openai.com/news/rss.xml" },
   { cat: "AI",   name: "Google AI Blog",  url: "https://blog.google/technology/ai/rss/" },
   { cat: "AI",   name: "MIT Tech Review", url: "https://www.technologyreview.com/topic/artificial-intelligence/feed" },
   { cat: "AI",   name: "The Verge AI",    url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml" },
   { cat: "AI",   name: "VentureBeat AI",  url: "https://venturebeat.com/category/ai/feed/" },
   // ---- 科技 ----
-  { cat: "科技", name: "iThome",          url: "https://www.ithome.com.tw/rss" },
+  { cat: "科技", name: "iThome",          url: "https://www.ithome.com.tw/rss", localTime: true },
   { cat: "科技", name: "科技新報",         url: "https://technews.tw/feed/" },
+  { cat: "科技", name: "中央社科技",        url: "https://feeds.feedburner.com/rsscna/technology" },
+  { cat: "科技", name: "INSIDE",          url: "https://www.inside.com.tw/feed/rss" },
   { cat: "科技", name: "TechCrunch",      url: "https://techcrunch.com/feed/" },
   { cat: "科技", name: "Ars Technica",    url: "https://feeds.arstechnica.com/arstechnica/index" },
   // ---- 財金 ----
   { cat: "財金", name: "鉅亨網",           url: "https://news.cnyes.com/rss/v1/news/category/headline" },
+  { cat: "財金", name: "鉅亨台股",          url: "https://news.cnyes.com/rss/v1/news/category/tw_stock" },
+  { cat: "財金", name: "鉅亨國際",          url: "https://news.cnyes.com/rss/v1/news/category/wd_stock" },
+  { cat: "財金", name: "經濟日報",          url: "https://money.udn.com/rssfeed/news/1001/5591/5612?ch=money" },
+  { cat: "財金", name: "自由財經",          url: "https://news.ltn.com.tw/rss/business.xml" },
+  { cat: "財金", name: "Yahoo奇摩股市",     url: "https://tw.stock.yahoo.com/rss?category=news" },
+  { cat: "財金", name: "ETtoday財經",      url: "https://feeds.feedburner.com/ettoday/finance" },
   { cat: "財金", name: "中央社財經",        url: "https://feeds.feedburner.com/rsscna/finance" },
   { cat: "財金", name: "CNBC Business",   url: "https://www.cnbc.com/id/10001147/device/rss/rss.html" },
   { cat: "財金", name: "MarketWatch",     url: "https://feeds.content.dowjones.io/public/rss/mw_topstories" },
@@ -164,7 +175,7 @@ const CATEGORIES   = ["全部", "AI", "科技", "財金"];
 const MAX_PER_FEED = 15;          // 每個來源最多取幾篇
 const MAX_AGE_DAYS = 3;           // 只顯示最近幾天的新聞
 const CACHE_TTL_MS = 60 * 60e3;   // 快取 1 小時，避免重複抓取
-const CACHE_KEY    = "dailyNews.v1";
+const CACHE_KEY    = "dailyNews.v2";   // 改版時換版號，舊快取會自動作廢
 
 /* ==========================================================
    CORS 代理：瀏覽器無法直接讀取跨網域 RSS，依序嘗試以下服務
@@ -195,6 +206,21 @@ function stripHtml(html) {
   const d = document.createElement("div");
   d.innerHTML = html || "";
   return (d.textContent || "").replace(/\s+/g, " ").trim();
+}
+
+// 解析發布時間。rss2json 回傳的格式是 "2026-09-15 04:25:56"（UTC 但沒標時區），
+// 瀏覽器會誤當成本地時間而差 8 小時，這裡補上 Z 讓它以 UTC 解析
+function parseDate(s, localTime = false) {
+  if (!s) return Date.now();
+  s = s.trim().replace(/\s+/g, " ");
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(s)) {
+    // 來源本身就是台灣時間（UTC+8）者，改用 +08:00 解析
+    s = s.replace(" ", "T") + (localTime ? "+08:00" : "Z");
+  }
+  let t = new Date(s).getTime();
+  if (isNaN(t)) return Date.now();
+  if (t > Date.now() + 5 * 60e3) t = Date.now(); // 防呆：時間跑到未來就視為剛剛
+  return t;
 }
 
 // 解析 RSS 2.0 / Atom
@@ -235,7 +261,7 @@ async function fetchFeed(feed) {
         title: stripHtml(it.title),
         link: it.link,
         desc: stripHtml(it.description).slice(0, 200),
-        time: new Date(it.pubDate).getTime() || Date.now(),
+        time: parseDate(it.pubDate, feed.localTime),
       })).filter(a => a.title && a.link);
     } catch (e) { lastErr = e; }
   }
