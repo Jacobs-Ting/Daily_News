@@ -96,6 +96,26 @@
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
 
+  /* ========== 台股行情 ========== */
+  .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+  .quote {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; box-shadow: var(--shadow); display: block;
+  }
+  .quote .qname { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
+  .quote .qname b { color: var(--text); font-weight: 600; }
+  .quote .qprice { font-size: 22px; font-weight: 700; margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+  .quote .qchg { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .quote.up .qprice, .quote.up .qchg { color: #dc2626; }     /* 台股慣例：紅漲綠跌 */
+  .quote.down .qprice, .quote.down .qchg { color: #16a34a; }
+  .quote .qmeta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .quotes-note { font-size: 11.5px; color: var(--muted); margin: -8px 0 16px; }
+  @media (max-width: 560px) {
+    .quotes { grid-template-columns: 1fr 1fr; }
+    .quotes .quote:first-child { grid-column: 1 / -1; }
+    .quote .qprice { font-size: 20px; }
+  }
+
   .empty { text-align: center; color: var(--muted); padding: 60px 0; }
   .skeleton { height: 86px; border-radius: 12px; margin-bottom: 10px;
     background: linear-gradient(90deg, var(--card) 25%, var(--line) 50%, var(--card) 75%);
@@ -127,6 +147,8 @@
 </header>
 
 <main class="wrap">
+  <section class="quotes" id="quotes"></section>
+  <div class="quotes-note" id="quotesNote"></div>
   <div class="status">
     <span id="statusText">載入中…</span>
     <span id="errText"></span>
@@ -298,6 +320,118 @@ async function loadAll(force = false) {
 }
 
 /* ==========================================================
+   台股行情：加權指數、0050、00919
+   資料來源：證交所盤後 API（www.twse.com.tw/rwd，支援跨網域），
+   備援：FinMind 開放資料。兩者皆為「收盤」資料，盤中不會即時跳動。
+   ========================================================== */
+const QUOTES = [
+  { id: "TAIEX", name: "加權指數", isIndex: true },
+  { id: "0050",  name: "元大台灣50" },
+  { id: "00919", name: "群益台灣精選高息" },
+];
+const QUOTE_CACHE_KEY = "dailyNews.quotes.v1";
+const QUOTE_TTL_MS    = 30 * 60e3;
+
+const num = s => parseFloat(String(s).replace(/,/g, "")) || 0;
+const pad = n => String(n).padStart(2, "0");
+const ymd = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+const rocToDate = s => { const [y, m, d] = s.split("/"); return `${+y + 1911}-${m}-${d}`; };
+
+// 證交所：個股／ETF 當月每日成交資訊，取最後一筆
+async function twseStock(id) {
+  const now = new Date();
+  let rows = [];
+  for (let back = 0; back < 2 && rows.length < 2; back++) {          // 月初資料不足時往前一個月補
+    const d = new Date(now.getFullYear(), now.getMonth() - back, 1);
+    const url = `https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY?date=${ymd(d)}&stockNo=${id}&response=json`;
+    const j = await (await fetchWithTimeout(url)).json();
+    if (j.stat === "OK" && j.data?.length) rows = [...j.data, ...rows];
+  }
+  if (!rows.length) throw new Error("無資料");
+  const last = rows[rows.length - 1];
+  const close = num(last[6]), spread = num(last[7]);
+  return { price: close, change: spread, prev: close - spread, date: rocToDate(last[0]) };
+}
+
+// 證交所：大盤指數，從今天往回找最近一個有資料的交易日
+async function twseIndex() {
+  for (let back = 0; back < 7; back++) {
+    const d = new Date(); d.setDate(d.getDate() - back);
+    const url = `https://www.twse.com.tw/rwd/zh/afterTrading/MI_INDEX?date=${ymd(d)}&type=IND&response=json`;
+    const j = await (await fetchWithTimeout(url)).json();
+    const row = j.tables?.[0]?.data?.find(r => r[0] === "發行量加權股價指數");
+    if (row) {
+      const close = num(row[1]);
+      const sign = /-/.test(stripHtml(row[2])) ? -1 : 1;
+      const change = sign * Math.abs(num(row[3]));
+      return { price: close, change, prev: close - change, date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` };
+    }
+  }
+  throw new Error("無資料");
+}
+
+// FinMind 備援
+async function finmind(id) {
+  const start = new Date(); start.setDate(start.getDate() - 10);
+  const url = `https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockPrice&data_id=${id}&start_date=${start.toISOString().slice(0, 10)}`;
+  const j = await (await fetchWithTimeout(url)).json();
+  const rows = j.data || [];
+  if (!rows.length) throw new Error("無資料");
+  const last = rows[rows.length - 1];
+  return { price: last.close, change: last.spread, prev: last.close - last.spread, date: last.date };
+}
+
+async function fetchQuote(q) {
+  try { return q.isIndex ? await twseIndex() : await twseStock(q.id); }
+  catch { return await finmind(q.id); }
+}
+
+async function loadQuotes(force = false) {
+  if (!force) {
+    try {
+      const c = JSON.parse(localStorage.getItem(QUOTE_CACHE_KEY) || "null");
+      if (c && Date.now() - c.at < QUOTE_TTL_MS) return c.data;
+    } catch {}
+  }
+  const results = await Promise.allSettled(QUOTES.map(fetchQuote));
+  const data = QUOTES.map((q, i) => ({ ...q, ...(results[i].status === "fulfilled" ? results[i].value : { error: true }) }));
+  try { localStorage.setItem(QUOTE_CACHE_KEY, JSON.stringify({ at: Date.now(), data })); } catch {}
+  return data;
+}
+
+function renderQuotes(data) {
+  const fmt = (n, dp) => n.toLocaleString("zh-TW", { minimumFractionDigits: dp, maximumFractionDigits: dp });
+  $("quotes").innerHTML = data.map(q => {
+    if (q.error) return `<div class="quote"><div class="qname"><b>${q.name}</b><span>${q.isIndex ? "" : q.id}</span></div><div class="qprice" style="font-size:14px;color:var(--muted)">暫時無法取得</div></div>`;
+    const dp = q.isIndex ? 2 : 2;
+    const pct = q.prev ? (q.change / q.prev) * 100 : 0;
+    const cls = q.change > 0 ? "up" : q.change < 0 ? "down" : "";
+    const arrow = q.change > 0 ? "▲" : q.change < 0 ? "▼" : "—";
+    const link = q.isIndex ? "https://tw.stock.yahoo.com/quote/%5ETWII" : `https://tw.stock.yahoo.com/quote/${q.id}.TW`;
+    return `
+      <a class="quote ${cls}" href="${link}" target="_blank" rel="noopener">
+        <div class="qname"><b>${q.name}</b><span>${q.isIndex ? "TAIEX" : q.id}</span></div>
+        <div class="qprice">${fmt(q.price, dp)}</div>
+        <div class="qchg">${arrow} ${fmt(Math.abs(q.change), dp)}（${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%）</div>
+        <div class="qmeta">${q.date.slice(5).replace("-", "/")} 收盤</div>
+      </a>`;
+  }).join("");
+
+  // 盤中提示
+  const now = new Date(), hm = now.getHours() * 100 + now.getMinutes(), wd = now.getDay();
+  const trading = wd >= 1 && wd <= 5 && hm >= 900 && hm < 1500;
+  $("quotesNote").textContent = trading
+    ? "台股交易中：目前顯示前一交易日收盤價，今日收盤資料約 15:00 後更新。"
+    : "資料為證交所盤後收盤價，點擊可查看即時走勢。";
+}
+
+async function refreshQuotes(force) {
+  $("quotes").innerHTML = '<div class="skeleton" style="height:90px"></div>'.repeat(3);
+  try { renderQuotes(await loadQuotes(force)); }
+  catch { $("quotes").innerHTML = ""; $("quotesNote").textContent = "台股行情暫時無法取得"; }
+}
+
+/* ==========================================================
    畫面
    ========================================================== */
 let state = { articles: [], errors: [], at: 0, cat: "全部", q: "" };
@@ -381,10 +515,11 @@ $("tabs").addEventListener("click", e => {
   state.cat = t.dataset.cat; renderTabs(); renderList();
 });
 $("search").addEventListener("input", e => { state.q = e.target.value.trim(); renderList(); });
-$("refreshBtn").addEventListener("click", () => refresh(true));
+$("refreshBtn").addEventListener("click", () => { refresh(true); refreshQuotes(true); });
 $("dateLabel").textContent = new Date().toLocaleDateString("zh-TW", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
 
 refresh(false);
+refreshQuotes(false);
 </script>
 </body>
 </html>
