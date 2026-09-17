@@ -5,129 +5,151 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>每日新聞｜AI・科技・財金</title>
 <style>
-  /* ========== 主題色票 ========== */
+  /* ========== 主題色票：淺色、溫暖、輕鬆 ========== */
   :root {
-    --bg: #f6f7f9;
+    color-scheme: light;
+    --bg: #fbf7f1;              /* 奶油米白 */
+    --bg-deep: #f3ece2;
     --card: #ffffff;
-    --text: #1a1d21;
-    --muted: #6b7280;
-    --line: #e5e7eb;
-    --accent: #2563eb;
-    --accent-soft: #dbeafe;
-    --ai: #7c3aed;   --ai-soft: #ede9fe;
-    --tech: #0891b2; --tech-soft: #cffafe;
-    --fin: #d97706;  --fin-soft: #fef3c7;
-    --err: #dc2626;
-    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.05);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0f1115; --card: #181b21; --text: #e6e8eb; --muted: #9aa1ab;
-      --line: #262a31; --accent: #60a5fa; --accent-soft: #1e2a44;
-      --ai: #a78bfa; --ai-soft: #2a2240; --tech: #22d3ee; --tech-soft: #12303a;
-      --fin: #fbbf24; --fin-soft: #3a2f12; --shadow: none;
-    }
+    --text: #33313a;
+    --muted: #8d8895;
+    --line: #efe7db;
+    --accent: #f0785c;          /* 珊瑚橘 */
+    --accent-soft: #fde6df;
+    --ai: #7b6cf6;   --ai-soft: #ebe8ff;   --ai-tint: #f7f5ff;
+    --tech: #2ba58e; --tech-soft: #dcf5ee; --tech-tint: #f2fbf8;
+    --fin: #e0912e;  --fin-soft: #fdeed9;  --fin-tint: #fff8ef;
+    --up: #e5564d; --down: #3aa877;
+    --err: #d9534f;
+    --shadow: 0 2px 6px rgba(90, 70, 40, .05), 0 10px 24px rgba(90, 70, 40, .06);
+    --radius: 18px;
   }
 
   * { box-sizing: border-box; }
   body {
     margin: 0; background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
-    line-height: 1.5;
+    font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif;
+    line-height: 1.6;
   }
   a { color: inherit; text-decoration: none; }
 
-  /* ========== 頁首 ========== */
-  header {
-    position: sticky; top: 0; z-index: 10;
-    background: var(--card); border-bottom: 1px solid var(--line);
+  /* 背景柔和色塊 */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(600px 300px at 10% -5%, rgba(240,120,92,.14), transparent 70%),
+      radial-gradient(500px 280px at 95% 0%, rgba(123,108,246,.12), transparent 70%),
+      radial-gradient(500px 300px at 50% 110%, rgba(43,165,142,.10), transparent 70%);
   }
-  .wrap { max-width: 900px; margin: 0 auto; padding: 0 16px; }
-  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0 10px; }
-  h1 { font-size: 20px; margin: 0; letter-spacing: .5px; }
-  h1 small { display: block; font-size: 12px; color: var(--muted); font-weight: normal; margin-top: 2px; }
+
+  /* ========== 頁首 ========== */
+  header { padding: 28px 0 6px; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 18px; }
+  .topbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  h1 { font-size: 30px; margin: 0; letter-spacing: .5px; font-weight: 800; line-height: 1.2; }
+  h1 .hi { color: var(--accent); }
+  h1 small { display: block; font-size: 14px; color: var(--muted); font-weight: 400; margin-top: 6px; letter-spacing: 0; }
   .actions { display: flex; gap: 8px; align-items: center; }
   button {
-    border: 1px solid var(--line); background: var(--card); color: var(--text);
-    padding: 7px 12px; border-radius: 8px; cursor: pointer; font-size: 13px;
+    border: 0; background: var(--card); color: var(--text);
+    padding: 9px 14px; border-radius: 999px; cursor: pointer; font-size: 13px; font-weight: 600;
+    box-shadow: var(--shadow); transition: transform .12s, background .12s;
   }
-  button:hover { border-color: var(--accent); color: var(--accent); }
-  button:disabled { opacity: .5; cursor: wait; }
+  button:hover { background: var(--accent-soft); color: var(--accent); transform: translateY(-1px); }
+  button:disabled { opacity: .5; cursor: wait; transform: none; }
   .search {
-    border: 1px solid var(--line); background: var(--bg); color: var(--text);
-    padding: 7px 10px; border-radius: 8px; font-size: 13px; width: 160px;
+    border: 0; background: var(--card); color: var(--text);
+    padding: 9px 14px; border-radius: 999px; font-size: 13px; width: 170px;
+    box-shadow: var(--shadow);
   }
-  .search:focus { outline: none; border-color: var(--accent); }
+  .search::placeholder { color: var(--muted); }
+  .search:focus { outline: 2px solid var(--accent-soft); }
 
-  .tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 10px; }
+  .tabs { display: flex; gap: 6px; overflow-x: auto; padding: 18px 0 14px; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
   .tab {
-    padding: 6px 14px; border-radius: 999px; font-size: 14px; cursor: pointer;
-    color: var(--muted); border: 1px solid transparent; white-space: nowrap;
+    padding: 7px 16px; border-radius: 999px; font-size: 14px; cursor: pointer; font-weight: 600;
+    color: var(--muted); background: var(--bg-deep); white-space: nowrap; transition: all .15s;
   }
-  .tab:hover { background: var(--bg); }
-  .tab.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-  .tab .n { font-size: 12px; opacity: .8; margin-left: 4px; }
+  .tab:hover { background: var(--card); color: var(--text); }
+  .tab.active { background: var(--text); color: #fff; }
+  .tab[data-cat="AI"].active   { background: var(--ai); }
+  .tab[data-cat="科技"].active { background: var(--tech); }
+  .tab[data-cat="財金"].active { background: var(--fin); }
+  .tab .n { font-size: 12px; opacity: .75; margin-left: 5px; font-weight: 500; }
 
   /* ========== 內容 ========== */
-  main { padding: 20px 0 60px; }
-  .status { font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  main { padding: 6px 0 60px; }
+  .status { font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin: 4px 4px 14px; }
   .status .err { color: var(--err); cursor: pointer; }
 
   .day-title {
-    font-size: 13px; font-weight: 600; color: var(--muted);
-    margin: 22px 0 10px; text-transform: uppercase; letter-spacing: .5px;
+    display: inline-block; font-size: 13px; font-weight: 700; color: var(--text);
+    margin: 26px 0 12px; padding: 4px 12px; border-radius: 999px; background: var(--bg-deep);
   }
-  .day-title:first-child { margin-top: 0; }
+  .day-title:first-child { margin-top: 6px; }
 
   .card {
-    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-    padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow);
-    display: block; transition: transform .12s, border-color .12s;
+    background: var(--card); border-radius: var(--radius);
+    padding: 16px 18px 16px 20px; margin-bottom: 12px; box-shadow: var(--shadow);
+    display: block; position: relative; overflow: hidden;
+    transition: transform .15s, box-shadow .15s;
   }
-  .card:hover { transform: translateY(-1px); border-color: var(--accent); }
+  .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--line); }
+  .card.AI::before   { background: var(--ai); }
+  .card.科技::before { background: var(--tech); }
+  .card.財金::before { background: var(--fin); }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(90,70,40,.08), 0 18px 36px rgba(90,70,40,.10); }
   .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-bottom: 6px; flex-wrap: wrap; }
-  .badge { padding: 2px 8px; border-radius: 999px; font-weight: 600; font-size: 11px; }
+  .badge { padding: 2px 10px; border-radius: 999px; font-weight: 700; font-size: 11px; }
   .badge.AI   { background: var(--ai-soft);   color: var(--ai); }
   .badge.科技 { background: var(--tech-soft); color: var(--tech); }
   .badge.財金 { background: var(--fin-soft);  color: var(--fin); }
-  .title { font-size: 16px; font-weight: 600; line-height: 1.4; margin: 0 0 4px; }
+  .title { font-size: 16.5px; font-weight: 700; line-height: 1.45; margin: 0 0 5px; }
   .desc {
     font-size: 13.5px; color: var(--muted); margin: 0;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
 
   /* ========== 台股行情 ========== */
-  .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+  .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 10px; }
   .quote {
-    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-    padding: 12px 14px; box-shadow: var(--shadow); display: block;
+    background: var(--card); border-radius: var(--radius);
+    padding: 14px 16px; box-shadow: var(--shadow); display: block;
+    transition: transform .15s;
   }
+  .quote:hover { transform: translateY(-2px); }
+  .quote:nth-child(1) { background: linear-gradient(135deg, #fff 55%, var(--fin-tint)); }
+  .quote:nth-child(2) { background: linear-gradient(135deg, #fff 55%, var(--ai-tint)); }
+  .quote:nth-child(3) { background: linear-gradient(135deg, #fff 55%, var(--tech-tint)); }
   .quote .qname { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
-  .quote .qname b { color: var(--text); font-weight: 600; }
-  .quote .qprice { font-size: 22px; font-weight: 700; margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
-  .quote .qchg { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .quote.up .qprice, .quote.up .qchg { color: #dc2626; }     /* 台股慣例：紅漲綠跌 */
-  .quote.down .qprice, .quote.down .qchg { color: #16a34a; }
+  .quote .qname b { color: var(--text); font-weight: 700; }
+  .quote .qprice { font-size: 24px; font-weight: 800; margin: 6px 0 2px; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
+  .quote .qchg { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .quote.up .qprice, .quote.up .qchg { color: var(--up); }       /* 台股慣例：紅漲綠跌 */
+  .quote.down .qprice, .quote.down .qchg { color: var(--down); }
   .quote .qmeta { font-size: 11px; color: var(--muted); margin-top: 4px; }
-  .quotes-note { font-size: 11.5px; color: var(--muted); margin: -8px 0 16px; }
+  .quotes-note { font-size: 11.5px; color: var(--muted); margin: 0 4px 18px; }
   @media (max-width: 560px) {
     .quotes { grid-template-columns: 1fr 1fr; }
     .quotes .quote:first-child { grid-column: 1 / -1; }
-    .quote .qprice { font-size: 20px; }
+    .quote .qprice { font-size: 21px; }
   }
 
   .empty { text-align: center; color: var(--muted); padding: 60px 0; }
-  .skeleton { height: 86px; border-radius: 12px; margin-bottom: 10px;
-    background: linear-gradient(90deg, var(--card) 25%, var(--line) 50%, var(--card) 75%);
+  .skeleton { height: 90px; border-radius: var(--radius); margin-bottom: 12px;
+    background: linear-gradient(90deg, var(--card) 25%, var(--bg-deep) 50%, var(--card) 75%);
     background-size: 200% 100%; animation: sh 1.2s infinite; }
   @keyframes sh { from { background-position: 200% 0 } to { background-position: -200% 0 } }
 
-  footer { text-align: center; font-size: 12px; color: var(--muted); padding: 20px 0; border-top: 1px solid var(--line); }
+  footer { text-align: center; font-size: 12px; color: var(--muted); padding: 24px 18px; }
 
   @media (max-width: 560px) {
-    .search { width: 110px; }
-    h1 { font-size: 18px; }
-    .title { font-size: 15px; }
+    header { padding-top: 20px; }
+    h1 { font-size: 24px; }
+    .search { width: 120px; }
+    .title { font-size: 15.5px; }
+    .card { padding: 14px 14px 14px 18px; }
   }
 </style>
 </head>
@@ -136,7 +158,7 @@
 <header>
   <div class="wrap">
     <div class="topbar">
-      <h1>每日新聞<small id="dateLabel"></small></h1>
+      <h1><span class="hi" id="greeting">早安</span>，今天的新聞來了<small id="dateLabel"></small></h1>
       <div class="actions">
         <input class="search" id="search" type="search" placeholder="搜尋標題…">
         <button id="refreshBtn" title="重新抓取所有來源">↻ 更新</button>
@@ -156,7 +178,7 @@
   <div id="list"></div>
 </main>
 
-<footer>資料來源為各媒體公開 RSS，點擊卡片將前往原始網站。每日開啟即自動更新。</footer>
+<footer>新聞來自各媒體公開 RSS，行情由鉅亨網與證交所提供。點卡片可前往原文，每天打開就會自動更新。</footer>
 
 <script>
 /* ==========================================================
@@ -324,11 +346,15 @@ async function loadAll(force = false) {
    資料來源：證交所盤後 API（www.twse.com.tw/rwd，支援跨網域），
    備援：FinMind 開放資料。兩者皆為「收盤」資料，盤中不會即時跳動。
    ========================================================== */
+// cnyes：鉅亨網即時報價代號（指數用 TWS:代號:INDEX，個股/ETF 用 TWS:代號:STOCK）
 const QUOTES = [
-  { id: "TAIEX", name: "加權指數", isIndex: true },
-  { id: "0050",  name: "元大台灣50" },
-  { id: "00919", name: "群益台灣精選高息" },
+  { id: "TAIEX", name: "加權指數", isIndex: true, cnyes: "TWS:TSE01:INDEX" },
+  { id: "0050",  name: "元大台灣50",            cnyes: "TWS:0050:STOCK" },
+  { id: "00919", name: "群益台灣精選高息",       cnyes: "TWS:00919:STOCK" },
 ];
+// 即時報價：鉅亨網公開 API（支援跨網域、盤中即時）。失敗時自動退回證交所盤後收盤價。
+const REALTIME_URL = "https://ws.api.cnyes.com/ws/api/v1/quote/quotes/";
+const REALTIME_POLL_MS = 10 * 1000;   // 交易時段每 10 秒更新一次
 const QUOTE_CACHE_KEY = "dailyNews.quotes.v1";
 const QUOTE_TTL_MS    = 30 * 60e3;
 
@@ -399,37 +425,69 @@ async function loadQuotes(force = false) {
   return data;
 }
 
+// 是否在台股交易時段（週一到週五 09:00–13:35，含收盤後幾分鐘的最後更新）
+function isTradingHours() {
+  const now = new Date(), hm = now.getHours() * 100 + now.getMinutes(), wd = now.getDay();
+  return wd >= 1 && wd <= 5 && hm >= 900 && hm < 1335;
+}
+
+// 鉅亨網即時報價。欄位：6=成交價 11=漲跌 56=漲跌% 200007=時間戳 200009=名稱
+// 注意：漲跌直接用 API 給的值，不要自己用「昨收」算——除息日參考價會不同
+async function fetchRealtime() {
+  const url = REALTIME_URL + QUOTES.map(q => q.cnyes).join(",") + "?column=E";
+  const j = await (await fetchWithTimeout(url, 8000)).json();
+  if (j.statusCode !== 200 || !Array.isArray(j.data)) throw new Error("cnyes 回傳異常");
+  return QUOTES.map(q => {
+    const d = j.data.find(x => x["0"] === q.cnyes);
+    if (!d || d["6"] == null) return { ...q, error: true };
+    const pct = d["56"] ?? 0;
+    return { ...q, price: d["6"], change: d["11"] ?? 0, pct, time: (d["200007"] || 0) * 1000, realtime: true };
+  });
+}
+
 function renderQuotes(data) {
   const fmt = (n, dp) => n.toLocaleString("zh-TW", { minimumFractionDigits: dp, maximumFractionDigits: dp });
   $("quotes").innerHTML = data.map(q => {
-    if (q.error) return `<div class="quote"><div class="qname"><b>${q.name}</b><span>${q.isIndex ? "" : q.id}</span></div><div class="qprice" style="font-size:14px;color:var(--muted)">暫時無法取得</div></div>`;
-    const dp = q.isIndex ? 2 : 2;
-    const pct = q.prev ? (q.change / q.prev) * 100 : 0;
+    if (q.error) return `<div class="quote"><div class="qname"><b>${q.name}</b><span>${q.isIndex ? "TAIEX" : q.id}</span></div><div class="qprice" style="font-size:14px;color:var(--muted)">暫時無法取得</div></div>`;
+    const pct = q.pct != null ? q.pct : (q.prev ? (q.change / q.prev) * 100 : 0);
     const cls = q.change > 0 ? "up" : q.change < 0 ? "down" : "";
     const arrow = q.change > 0 ? "▲" : q.change < 0 ? "▼" : "—";
     const link = q.isIndex ? "https://tw.stock.yahoo.com/quote/%5ETWII" : `https://tw.stock.yahoo.com/quote/${q.id}.TW`;
+    let meta;
+    if (q.realtime) {
+      const t = new Date(q.time);
+      const hhmm = `${pad(t.getHours())}:${pad(t.getMinutes())}`;
+      meta = isTradingHours() ? `${hhmm} 即時` : `${pad(t.getMonth() + 1)}/${pad(t.getDate())} 收盤`;
+    } else meta = `${q.date.slice(5).replace("-", "/")} 收盤`;
     return `
       <a class="quote ${cls}" href="${link}" target="_blank" rel="noopener">
         <div class="qname"><b>${q.name}</b><span>${q.isIndex ? "TAIEX" : q.id}</span></div>
-        <div class="qprice">${fmt(q.price, dp)}</div>
-        <div class="qchg">${arrow} ${fmt(Math.abs(q.change), dp)}（${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%）</div>
-        <div class="qmeta">${q.date.slice(5).replace("-", "/")} 收盤</div>
+        <div class="qprice">${fmt(q.price, 2)}</div>
+        <div class="qchg">${arrow} ${fmt(Math.abs(q.change), 2)}（${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%）</div>
+        <div class="qmeta">${meta}</div>
       </a>`;
   }).join("");
-
-  // 盤中提示
-  const now = new Date(), hm = now.getHours() * 100 + now.getMinutes(), wd = now.getDay();
-  const trading = wd >= 1 && wd <= 5 && hm >= 900 && hm < 1500;
-  $("quotesNote").textContent = trading
-    ? "台股交易中：目前顯示前一交易日收盤價，今日收盤資料約 15:00 後更新。"
-    : "資料為證交所盤後收盤價，點擊可查看即時走勢。";
 }
 
+let quoteTimer = null;
 async function refreshQuotes(force) {
-  $("quotes").innerHTML = '<div class="skeleton" style="height:90px"></div>'.repeat(3);
-  try { renderQuotes(await loadQuotes(force)); }
-  catch { $("quotes").innerHTML = ""; $("quotesNote").textContent = "台股行情暫時無法取得"; }
+  if (!$("quotes").querySelector(".quote")) $("quotes").innerHTML = '<div class="skeleton" style="height:90px"></div>'.repeat(3);
+  try {
+    renderQuotes(await fetchRealtime());
+    $("quotesNote").textContent = isTradingHours()
+      ? "即時行情由鉅亨網提供，交易時段每 10 秒自動更新。"
+      : "顯示最近一個交易日收盤價，交易時段（09:00–13:30）會自動切換為即時行情。";
+  } catch {
+    // 即時來源失敗 → 退回證交所盤後收盤價
+    try { renderQuotes(await loadQuotes(force)); $("quotesNote").textContent = "即時行情暫時無法取得，目前顯示證交所盤後收盤價。"; }
+    catch { $("quotes").innerHTML = ""; $("quotesNote").textContent = "台股行情暫時無法取得"; }
+  }
+  // 交易時段內持續輪詢；收盤後停止
+  clearTimeout(quoteTimer);
+  if (isTradingHours() && !document.hidden) quoteTimer = setTimeout(() => refreshQuotes(false), REALTIME_POLL_MS);
 }
+// 切回分頁時立刻更新一次（背景分頁不輪詢，省流量）
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshQuotes(false); });
 
 /* ==========================================================
    畫面
@@ -473,7 +531,7 @@ function renderList() {
     const day = new Date(a.time).toDateString();
     if (day !== lastDay) { html += `<div class="day-title">${fmtDay(a.time)}</div>`; lastDay = day; }
     html += `
-      <a class="card" href="${esc(a.link)}" target="_blank" rel="noopener">
+      <a class="card ${a.cat}" href="${esc(a.link)}" target="_blank" rel="noopener">
         <div class="meta">
           <span class="badge ${a.cat}">${a.cat}</span>
           <span>${esc(a.source)}</span><span>·</span><span>${fmtTime(a.time)}</span>
@@ -516,6 +574,7 @@ $("tabs").addEventListener("click", e => {
 });
 $("search").addEventListener("input", e => { state.q = e.target.value.trim(); renderList(); });
 $("refreshBtn").addEventListener("click", () => { refresh(true); refreshQuotes(true); });
+$("greeting").textContent = (h => h < 5 ? "夜深了" : h < 11 ? "早安" : h < 14 ? "午安" : h < 18 ? "下午好" : "晚安")(new Date().getHours());
 $("dateLabel").textContent = new Date().toLocaleDateString("zh-TW", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
 
 refresh(false);
