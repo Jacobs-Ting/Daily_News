@@ -1,0 +1,28 @@
+[
+  { "cat": "AI",   "name": "iThome AI",       "url": "https://www.ithome.com.tw/rss/ai", "localTime": true },
+  { "cat": "AI",   "name": "科技新報 AI",      "url": "https://technews.tw/category/ai/feed/" },
+  { "cat": "AI",   "name": "OpenAI",          "url": "https://openai.com/news/rss.xml" },
+  { "cat": "AI",   "name": "Google AI Blog",  "url": "https://blog.google/technology/ai/rss/" },
+  { "cat": "AI",   "name": "MIT Tech Review", "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed" },
+  { "cat": "AI",   "name": "The Verge AI",    "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml" },
+  { "cat": "AI",   "name": "VentureBeat AI",  "url": "https://venturebeat.com/category/ai/feed/" },
+
+  { "cat": "科技", "name": "iThome",          "url": "https://www.ithome.com.tw/rss", "localTime": true },
+  { "cat": "科技", "name": "科技新報",         "url": "https://technews.tw/feed/" },
+  { "cat": "科技", "name": "中央社科技",        "url": "https://feeds.feedburner.com/rsscna/technology" },
+  { "cat": "科技", "name": "INSIDE",          "url": "https://www.inside.com.tw/feed/rss" },
+  { "cat": "科技", "name": "TechCrunch",      "url": "https://techcrunch.com/feed/" },
+  { "cat": "科技", "name": "Ars Technica",    "url": "https://feeds.arstechnica.com/arstechnica/index" },
+
+  { "cat": "財金", "name": "鉅亨網",           "url": "https://news.cnyes.com/rss/v1/news/category/headline" },
+  { "cat": "財金", "name": "鉅亨台股",          "url": "https://news.cnyes.com/rss/v1/news/category/tw_stock" },
+  { "cat": "財金", "name": "鉅亨國際",          "url": "https://news.cnyes.com/rss/v1/news/category/wd_stock" },
+  { "cat": "財金", "name": "經濟日報",          "url": "https://money.udn.com/rssfeed/news/1001/5591/5612?ch=money" },
+  { "cat": "財金", "name": "自由財經",          "url": "https://news.ltn.com.tw/rss/business.xml" },
+  { "cat": "財金", "name": "Yahoo奇摩股市",     "url": "https://tw.stock.yahoo.com/rss?category=news" },
+  { "cat": "財金", "name": "ETtoday財經",      "url": "https://feeds.feedburner.com/ettoday/finance" },
+  { "cat": "財金", "name": "中央社財經",        "url": "https://feeds.feedburner.com/rsscna/finance" },
+  { "cat": "財金", "name": "CNBC Business",   "url": "https://www.cnbc.com/id/10001147/device/rss/rss.html" },
+  { "cat": "財金", "name": "MarketWatch",     "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories" },
+  { "cat": "財金", "name": "Yahoo Finance",   "url": "https://finance.yahoo.com/news/rssindex" }
+]
